@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Drug Index</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .search-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    #searchInput {
+      padding: 10px;
+      width: 300px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    #searchButton {
+      padding: 10px 20px;
+      margin-left: 10px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    #searchButton:hover {
+      background-color: #2980b9;
+    }
+    .results-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .drug-item {
+      margin-bottom: 15px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .drug-item:hover {
+      background-color: #f9f9f9;
+    }
+    .drug-details {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #ecf0f1;
+      border-radius: 5px;
+    }
+    .drug-details p {
+      margin: 5px 0;
+    }
+    .drug-details strong {
+      color: #2c3e50;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mini Drug Index</h1>
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search by Trade Name or Scientific Name">
+    <button id="searchButton">Search</button>
+  </div>
+  <div class="results-container" id="resultsContainer">
+    <!-- Results will be displayed here -->
+  </div>
+
+  <script>
+    // Function to parse CSV data into an array of objects
+    function parseCSV(csv) {
+      const lines = csv.split("\n");
+      const headers = lines[0].split(",");
+      const drugs = [];
+
+      for (let i = 1; i < lines.length; i++) {
+        const data = lines[i].split(",");
+        if (data.length === headers.length) {
+          const drug = {};
+          for (let j = 0; j < headers.length; j++) {
+            drug[headers[j].trim()] = data[j].trim();
+          }
+          drugs.push(drug);
+        }
+      }
+
+      return drugs;
+    }
+
+    // Sample CSV data (replace with actual CSV file content)
+    const csvData = `RegisterNumber,ReferenceNumber,Old register Number,Product type,DrugType,Sub-Type,Scientific Name,Trade Name,Strength,StrengthUnit,PharmaceuticalForm,AdministrationRoute,AtcCode1,AtcCode2,Size,SizeUnit,PackageTypes,PackageSize,Legal Status,Product Control,Distribute area,shelfLife,Storage conditions,Storage Condition Arabic,Marketing Company,Marketing Country,Manufacture Name,Manufacture Country,Secondry package  manufacture,Main Agent,Secosnd Agent,Third agent,Description Code,Authorization Status,Last Update
+1807245616,HG03664-00-00-00-6117,90-149-95,Human,Generic,,SODIUM CHLORIDE,0.9% W/V SODIUM CHLORIDE B.P,0.9,,Solution for injection,Parenteral use,B05CB01,B05XA03,5,ml,Bottle,1,Prescription,Uncontrolled,Hospital,48,store below 25°c,يحفظ في درجة حرارة الغرفة ( بحيث لا تتجاوز 25 درجة مئوية ) ,Pharmaceutical Solution Industries (PSI),Saudi Arabia,Pharmaceutical Solution Industries (PSI),Saudi Arabia,,Pharmaceutical Solution Industries (PSI),,,7000001155-0.9-100000073863,Valid,45571.52493
+24-31-86,,,Human,NCE,,CALCIUM CARBONATE,OS-CAL TAB 500MG,500,mg,Tablet,Oral use,A12AA04,A02AC01,,,Tablet Container,30,OTC,Uncontrolled,Pharmacy ,48,store below 25°c,يحفظ في درجة حرارة الغرفة ( بحيث لا تتجاوز 25 درجة مئوية ) ,PFIZER,Canada,PFIZER,Canada,,Annhdah Medical Company,,,7000000194-500-100000073664,Valid,44802.42049`;
+
+    // Parse the CSV data into an array of drug objects
+    const drugs = parseCSV(csvData);
+
+    // Function to display search results
+    function displayResults(query) {
+      const resultsContainer = document.getElementById("resultsContainer");
+      resultsContainer.innerHTML = ""; // Clear previous results
+
+      const filteredDrugs = drugs.filter(drug =>
+        drug["Trade Name"].toLowerCase().includes(query.toLowerCase()) ||
+        drug["Scientific Name"].toLowerCase().includes(query.toLowerCase())
+      );
+
+      if (filteredDrugs.length === 0) {
+        resultsContainer.innerHTML = "<p>No results found.</p>";
+        return;
+      }
+
+      filteredDrugs.forEach(drug => {
+        const drugItem = document.createElement("div");
+        drugItem.className = "drug-item";
+        drugItem.innerHTML = `
+          <strong>${drug["Trade Name"]}</strong> (${drug["Scientific Name"]})
+          <div class="drug-details">
+            <p><strong>Strength:</strong> ${drug["Strength"]} ${drug["StrengthUnit"]}</p>
+            <p><strong>Form:</strong> ${drug["PharmaceuticalForm"]}</p>
+            <p><strong>Route:</strong> ${drug["AdministrationRoute"]}</p>
+            <p><strong>Legal Status:</strong> ${drug["Legal Status"]}</p>
+            <p><strong>Marketing Company:</strong> ${drug["Marketing Company"]}</p>
+            <p><strong>Manufacture Country:</strong> ${drug["Manufacture Country"]}</p>
+            <p><strong>Shelf Life:</strong> ${drug["shelfLife"]} months</p>
+            <p><strong>Storage Conditions:</strong> ${drug["Storage conditions"]}</p>
+          </div>
+        `;
+        drugItem.addEventListener("click", () => {
+          const details = drugItem.querySelector(".drug-details");
+          details.style.display = details.style.display === "block" ? "none" : "block";
+        });
+        resultsContainer.appendChild(drugItem);
+      });
+    }
+
+    // Event listener for search button
+    document.getElementById("searchButton").addEventListener("click", () => {
+      const query = document.getElementById("searchInput").value.trim();
+      if (query) {
+        displayResults(query);
+      } else {
+        alert("Please enter a search term.");
+      }
+    });
+
+    // Event listener for pressing Enter in the search input
+    document.getElementById("searchInput").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        const query = document.getElementById("searchInput").value.trim();
+        if (query) {
+          displayResults(query);
+        } else {
+          alert("Please enter a search term.");
+        }
+      }
+    });
+  </script>
+</body>
+</html>
